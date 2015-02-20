@@ -39,10 +39,17 @@ From Ingredients we need to pull
 (define (grab-recipe baseUrl id key)
 (xml->xexpr (document-element (read-xml (get-pure-port (string->url (string-append baseUrl "/" id "?api_key=" key)))))))
 
+(define lot (list 'Ingredients 'Title))
+;; Pulls any number of tags out of the xml
+(define (grab-recipe-info ls lot)
+  (cond
+    [(empty? lot) empty]
+    [else (cons (pull-tag  ls (first lot)) (grab-recipe-info ls (rest lot)))]))
+
+;;pulls only title, cusine, imageURL, and Ingredients from xml
 (define (grab-relevant-info ls)
   (cons (pull-tag ls 'Title) (cons (pull-tag ls 'Cuisine)
-                                   (cons (pull-tag ls 'ImageUrl)
- 
+                                   (cons (pull-tag ls 'ImageURL)
                                          (pull-tag ls 'Ingredients)))))
 #|  
 (cond
