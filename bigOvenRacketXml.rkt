@@ -1,6 +1,7 @@
 #lang racket
 (require xml)
 (require net/url)
+(require srfi/13)
 
 #|
 The start of the recipe library
@@ -39,7 +40,18 @@ From Ingredients we need to pull
 (define (grab-recipe baseUrl id key)
 (xml->xexpr (document-element (read-xml (get-pure-port (string->url (string-append baseUrl "/" id "?api_key=" key)))))))
 
+;;removes whitespace from a given list
+
+(define (remove-white ls)
+  (cond
+    [(empty? ls) empty]
+    [(list? (first ls)) (cons (remove-white (first ls)) (remove-white (rest ls)))]
+    [(and (string? (first ls)) (regexp-match? "\r" (first ls))) (remove-white (rest ls))]
+    [else (cons (first ls) (remove-white (rest ls)))]))
+
 (define lot (list 'Ingredients 'Title))
+
+;;not efficient...
 ;; Pulls any number of tags out of the xml
 (define (grab-recipe-info ls lot)
   (cond
