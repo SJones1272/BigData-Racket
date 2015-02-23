@@ -33,23 +33,40 @@ Fondue - 714740
 
 Maybe come up with a way to search for recipes
 given some keyword
+http://api.bigoven.com/recipes?title_kw=spanish&pg=1&rpp=200&api_key=dvxKRgLN3XInu21MPS4Dia2PFj3jMX6q
+
 |#
 
 ;;Base URL
 (define BASE "http://api.bigoven.com/recipe")
 (define KEY "dvxKRgLN3XInu21MPS4Dia2PFj3jMX6q")
-(define OUTERTAGS (list 'Title 'Cuisine 'Category 'ImageURL))
+(define OUTERTAGS (list 'Title 'Cuisine 'StarRating 
+                        'FavoriteCount 'Category 'YeildNumber 'YeildUnit 'Total 'ImageURL))
 (define INGREDSINNER (list 'Name 'MetricQuantity 'MetricUnit))
-
+(define OUTERTAGS2 (list 'RecipeInfo))
+(define INNERTAGS2 (list 'RecipeID 'Title 'Cuisine 'Category 'StarRating))
 ;;(grab-ingredients "http://api.bigoven.com/recipe" "47725" "dvxKRgLN3XInu21MPS4Dia2PFj3jMX6q")
 ;;Main function : Reads in the xml and removes white space
-(define (read/clean-data baseUrl id key)
-(grab-recipe-info
-  (remove-white 
+(define (read/clean-recipe baseUrl id key)
+ (grab-recipe-info (remove-white 
    (xml->xexpr 
     (document-element (read-xml (get-pure-port 
-                                 (string->url (string-append baseUrl "/" id "?api_key=" key)))))))))
+                               (string->url (string-append baseUrl "/" id "?api_key=" key)))))))))
+
+(define (read/clean-id baseUrl kw key)
+  (grab-recipe-info2 (remove-white 
+   (xml->xexpr 
+    (document-element (read-xml (get-pure-port 
+                                 (string->url (string-append "http://api.bigoven.com/recipes?title_kw=" kw "&pg=1&rpp=200&api_key=" KEY)))))))))
+  
+  
+  
 ;;grabs outer and inner tags from the recipe
+(define (grab-recipe-info2 data)
+                (map (lambda (x1) (map (lambda (x1) (if (and (list? x1) (>  (length x1) 2))
+                                 (third x1)
+                                 "MISSING")) (pull-tags x1 INNERTAGS2))) (pull-tag (first (pull-tag data 'Results)) 'RecipeInfo)))
+
 (define (grab-recipe-info data)
   (append  (map (lambda (x1) (if (and (list? x1) (>  (length x1) 2))
                                  (third x1)
@@ -82,7 +99,7 @@ given some keyword
 (define (clean-ingred x)
   (map (lambda (x1) (if (and (list? x) (> (length x1) 2))
                        (third x1)
-                       "MISSING")) x))
+                       "none")) x))
 
 (define oneIngred '((Name () "Salmon steaks")
   (MetricQuantity () "8")
