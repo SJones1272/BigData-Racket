@@ -26,6 +26,15 @@ From Ingredients we need to pull
 
 |#
 
+#|
+Recipe ID's
+Spanish Chicken - 291260
+Fondue - 714740
+
+Maybe come up with a way to search for recipes
+given some keyword
+|#
+
 ;;Base URL
 (define BASE "http://api.bigoven.com/recipe")
 (define KEY "dvxKRgLN3XInu21MPS4Dia2PFj3jMX6q")
@@ -42,7 +51,9 @@ From Ingredients we need to pull
                                  (string->url (string-append baseUrl "/" id "?api_key=" key)))))))))
 ;;grabs outer and inner tags from the recipe
 (define (grab-recipe-info data)
-  (append (append (map third (pull-tags data OUTERTAGS)))
+  (append  (map (lambda (x1) (if (and (list? x1) (>  (length x1) 2))
+                                 (third x1)
+                                 "MISSING")) (pull-tags data OUTERTAGS))
         (list (map clean-ingred (map  (lambda (x)  (pull-tags x INGREDSINNER)) 
               (pull-tag (first (pull-tag data 'Ingredients)) 'Ingredient))))))
 
@@ -69,7 +80,7 @@ From Ingredients we need to pull
     [else (or (member (first listOfTags) x) (relevant? x (rest listOfTags)))])) 
 
 (define (clean-ingred x)
-  (map (lambda (x1) (if (> (length x1) 2)
+  (map (lambda (x1) (if (and (list? x) (> (length x1) 2))
                        (third x1)
                        "MISSING")) x))
 
